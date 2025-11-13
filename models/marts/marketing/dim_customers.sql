@@ -1,23 +1,11 @@
 with customers as (
 
-    select
-        id as customer_id,
-        first_name,
-        last_name
-
-    from raw.jaffle_shop.customers
-
+    select * from {{ref('stg_jaffle_shop__customers')}}
 ),
 
 orders as (
 
-    select
-        id as order_id,
-        user_id as customer_id,
-        order_date,
-        status
-
-    from raw.jaffle_shop.orders
+    select * from {{ref('fct_orders')}}
 
 ),
 
@@ -25,10 +13,10 @@ customer_orders as (
 
     select
         customer_id,
-
         min(order_date) as first_order_date,
         max(order_date) as most_recent_order_date,
-        count(order_id) as number_of_orders
+        count(order_id) as number_of_orders,
+        sum(amount) as lifetime_value
 
     from orders
 
@@ -45,6 +33,7 @@ final as (
         customers.last_name,
         customer_orders.first_order_date,
         customer_orders.most_recent_order_date,
+        customer_orders.lifetime_value,
         coalesce(customer_orders.number_of_orders, 0) as number_of_orders
 
     from customers
